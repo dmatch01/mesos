@@ -37,7 +37,7 @@ set(
 
 # DIRECTORY STRUCTURE FOR THIRD-PARTY LIBS REQUIRED FOR TEST INFRASTRUCTURE.
 ############################################################################
-EXTERNAL("gmock" ${GMOCK_VERSION} "${PROCESS_3RD_BIN}")
+EXTERNAL(LIB_NAME "gmock" LIB_VERSION ${GMOCK_VERSION} BIN_ROOT "${PROCESS_3RD_BIN}")
 
 set(GTEST_SRC          ${GMOCK_ROOT}/gtest)
 set(GPERFTOOLS_VERSION 2.0)
