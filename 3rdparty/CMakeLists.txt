@@ -26,22 +26,37 @@ set(UPSTREAM_URL https://github.com/3rdparty/mesos-3rdparty/raw/master)
 set(REBUNDLED_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (REBUNDLED)
+  set(LEVELDB_URL   ${REBUNDLED_DIR}/leveldb${LEVELDB_VERSION}.tar.gz)
   set(ZOOKEEPER_URL ${REBUNDLED_DIR}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz)
 else (REBUNDLED)
+  set(LEVELDB_URL   ${UPSTREAM_URL}/leveldb${LEVELDB_VERSION}.tar.gz)
   set(ZOOKEEPER_URL ${UPSTREAM_URL}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz)
 endif (REBUNDLED)
 
 # Define build/patch/configure commands for third-party libs.
 #############################################################
 if (NOT WIN32)
+  set(LEVELDB_CONFIG_CMD    ${CMAKE_NOOP})
+  set(LEVELDB_BUILD_CMD     cd ${LEVELDB_C_ROOT} && make)
+  set(LEVELDB_INSTALL_CMD   ${CMAKE_NOOP})
+
   set(ZOOKEEPER_CONFIG_CMD  cd ${ZOOKEEPER_C_ROOT} && ./configure --enable-shared=no --with-pic --srcdir=. --prefix=${ZOOKEEPER_LIB})
   set(ZOOKEEPER_BUILD_CMD   cd ${ZOOKEEPER_C_ROOT} && make)
   set(ZOOKEEPER_INSTALL_CMD cd ${ZOOKEEPER_C_ROOT} && make install)
 
   PATCH_CMD(
+    ${MESOS_3RDPARTY_SRC}/leveldb.patch
+    LEVELDB_PATCH_CMD)
+
+  PATCH_CMD(
     ${MESOS_3RDPARTY_SRC}/zookeeper-${ZOOKEEPER_VERSION}.patch
     ZOOKEEPER_PATCH_CMD)
 elseif (WIN32)
+  set(LEVELDB_PATCH_CMD     ${CMAKE_NOOP})
+  set(LEVELDB_CONFIG_CMD    ${CMAKE_NOOP})
+  set(LEVELDB_BUILD_CMD     ${CMAKE_NOOP})
+  set(LEVELDB_INSTALL_CMD   ${CMAKE_NOOP})
+
   # Set the patch command which will utilize patch.exe in temp location for no elevation prompt
   set(
     ZOOKEEPER_PATCH_CMD
@@ -60,6 +75,16 @@ endif (NOT WIN32)
 # Third-party libraries. Tell the build system how to pull in and build third-
 # party libraries at compile time, using the ExternalProject_Add macro.
 ##############################################################################
+ExternalProject_Add(
+  ${LEVELDB_TARGET}
+  PREFIX            ${LEVELDB_CMAKE_ROOT}
+  PATCH_COMMAND     ${LEVELDB_PATCH_CMD}
+  CONFIGURE_COMMAND ${LEVELDB_CONFIG_CMD}
+  BUILD_COMMAND     ${LEVELDB_BUILD_CMD}
+  INSTALL_COMMAND   ${LEVELDB_INSTALL_CMD}
+  URL               ${LEVELDB_URL}
+  )
+
 ExternalProject_Add(
   ${ZOOKEEPER_TARGET}
   PREFIX            ${ZOOKEEPER_CMAKE_ROOT}
