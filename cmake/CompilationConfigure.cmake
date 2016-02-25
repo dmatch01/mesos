@@ -121,3 +121,13 @@ add_definitions(-DPKGLIBEXECDIR="${PKG_LIBEXEC_INSTALL_DIR}")
 add_definitions(-DLIBDIR="${LIB_INSTALL_DIR}")
 add_definitions(-DVERSION="${PACKAGE_VERSION}")
 add_definitions(-DPKGDATADIR="${DATA_INSTALL_PREFIX}")
+
+MACRO (GET_BUILD_DATE BUILD_DATE)
+    EXECUTE_PROCESS(COMMAND "date" "+%Y/%m/%d %H:%M:%S" OUTPUT_VARIABLE ${BUILD_DATE})
+    string(REGEX REPLACE "(....)/(..)/(..) (..):(..):(..).*" "\"\\1-\\2-\\3 \\4:\\5:\\6\"" ${BUILD_DATE} ${${BUILD_DATE}})
+ENDMACRO (GET_BUILD_DATE)
+
+MACRO (GET_BUILD_TIME BUILD_TIME)
+    EXECUTE_PROCESS(COMMAND "date" "+%s/" OUTPUT_VARIABLE ${BUILD_TIME})
+    string(REGEX REPLACE "([0-9]*)/.*" "\"\\1\"" ${BUILD_TIME} ${${BUILD_TIME}})
+ENDMACRO (GET_BUILD_TIME)
