@@ -18,19 +18,6 @@ set(
   STOUT_TESTS_TARGET stout_tests
   CACHE STRING "Target we use to refer to tests for the stout library")
 
-if (NOT WIN32)
-  # TODO(hausdorff): (cf. MESOS-3181) Add support for attempting to find these
-  # packages on Windows, and then if that fails, use CMake macros/functions to
-  # download, configure, and build them.
-  #
-  # WHY: Windows does not have a good package manager, so getting some of our
-  # dependencies can be really annoying in some circumstances. For this reason,
-  # we should support a CMake-based "distribution channel", even though this
-  # way is sure to be more hackish.
-  find_package(Apr REQUIRED)
-  find_package(Svn REQUIRED)
-endif (NOT WIN32)
-
 # COMPILER CONFIGURATION.
 #########################
 if (APPLE)
