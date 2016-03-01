@@ -28,15 +28,74 @@
 #                     build-1.53.0-build, -lib, and so on, for each build step
 #                     that dependency has)
 
-include(CMakeParseArguments)
+#include(CMakeParseArguments)
+#
+#function(EXTERNAL)
+#  set(options)
+#  set(oneValueArgs LIB_NAME LIB_VERSION BIN_ROOT)
+#  set(multiValueArgs)
+#  cmake_parse_arguments(EXTERNAL "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+#
+#  string(TOUPPER ${EXTERNAL_LIB_NAME} LIB_NAME_UPPER)
+#
+#  # Names of variables we will set in this function.
+#  set(VERSION_VAR    ${LIB_NAME_UPPER}_VERSION)    # e.g., BOOST_VERSION
+#  set(TARGET_VAR     ${LIB_NAME_UPPER}_TARGET)     # e.g., BOOST_TARGET
+#  set(CMAKE_ROOT_VAR ${LIB_NAME_UPPER}_CMAKE_ROOT) # e.g., BOOST_CMAKE_ROOT
+#  set(ROOT_VAR       ${LIB_NAME_UPPER}_ROOT)       # e.g., BOOST_ROOT
+#
+#  # Generate data that we will put in the above variables.
+#  # NOTE: bundled packages are untar'd into the EXTERNAL_BIN_ROOT, which is why we're
+#  #       pointing the source root into EXTERNAL_BIN_ROOT rather than SRC_ROOT.
+#  # TODO(hausdorff): SRC_DATA doesn't work for HTTP, LIBEV, GMOCK, or GTEST.
+#  if(EXTERNAL_LIB_VERSION)
+#    set(VERSION_DATA    ${EXTERNAL_LIB_VERSION})
+#    set(TARGET_DATA     ${EXTERNAL_LIB_NAME}-${VERSION_DATA})
+#  else (NOT EXTERNAL_LIB_VERSION)
+#    set(TARGET_DATA     ${EXTERNAL_LIB_NAME})
+#  endif (EXTERNAL_LIB_VERSION)
+#
+#  set(CMAKE_ROOT_DATA ${EXTERNAL_BIN_ROOT}/${TARGET_DATA})
+#  set(ROOT_DATA       ${CMAKE_ROOT_DATA}/src/${TARGET_DATA})
+#
+#  # Finally, EXPORT THE ABOVE VARIABLES. We take the data variables we just
+#  # defined, and export them to variables in the parent scope.
+#  #
+#  # NOTE: The "export" step is different from the "define the data vars" step
+#  #       because an expression like ${VERSION_VAR} will evaluate to
+#  #       something like "BOOST_VERSION", not something like "1.53.0". That
+#  #       is: to get the version in the parent scope we would do something
+#  #       like ${BOOST_VERSION}, which might evaluate to something like
+#  #       "1.53.0". So in this function, if you wanted to generate (e.g.) the
+#  #       target variable, it is not sufficient to write
+#  #       "${EXTERNAL_LIB_NAME}-${VERSION_VAR}", because this would result in
+#  #       something like "boost-BOOST_VERSION" when what we really wanted was
+#  #       "boost-1.53.0". Hence, these two steps are different.
+#  if(EXTERNAL_LIB_VERSION)
+#    set(${VERSION_VAR}    # e.g., 1.53.0
+#      ${VERSION_DATA}
+#      PARENT_SCOPE)
+#  endif (EXTERNAL_LIB_VERSION)
+#
+#  set(${TARGET_VAR}     # e.g., boost-1.53.0
+#    ${TARGET_DATA}
+#    PARENT_SCOPE)
+#
+#  set(${CMAKE_ROOT_VAR} # e.g., build/3rdparty/libprocess/3rdparty/boost-1.53.0
+#    ${CMAKE_ROOT_DATA}
+#    PARENT_SCOPE)
+#
+#  set(${ROOT_VAR}       # e.g., build/.../boost-1.53.0/src
+#    ${ROOT_DATA}
+#    PARENT_SCOPE)
+#endfunction()
 
-function(EXTERNAL)
-  set(options)
-  set(oneValueArgs LIB_NAME LIB_VERSION BIN_ROOT)
-  set(multiValueArgs)
-  cmake_parse_arguments(EXTERNAL "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+function(EXTERNAL
+  LIB_NAME
+  LIB_VERSION
+  BIN_ROOT)
 
-  string(TOUPPER ${EXTERNAL_LIB_NAME} LIB_NAME_UPPER)
+  string(TOUPPER ${LIB_NAME} LIB_NAME_UPPER)
 
   # Names of variables we will set in this function.
   set(VERSION_VAR    ${LIB_NAME_UPPER}_VERSION)    # e.g., BOOST_VERSION
@@ -45,17 +104,12 @@ function(EXTERNAL)
   set(ROOT_VAR       ${LIB_NAME_UPPER}_ROOT)       # e.g., BOOST_ROOT
 
   # Generate data that we will put in the above variables.
-  # NOTE: bundled packages are untar'd into the EXTERNAL_BIN_ROOT, which is why we're
-  #       pointing the source root into EXTERNAL_BIN_ROOT rather than SRC_ROOT.
+  # NOTE: bundled packages are untar'd into the BIN_ROOT, which is why we're
+  #       pointing the source root into BIN_ROOT rather than SRC_ROOT.
   # TODO(hausdorff): SRC_DATA doesn't work for HTTP, LIBEV, GMOCK, or GTEST.
-  if(EXTERNAL_LIB_VERSION)
-    set(VERSION_DATA    ${EXTERNAL_LIB_VERSION})
-    set(TARGET_DATA     ${EXTERNAL_LIB_NAME}-${VERSION_DATA})
-  else (NOT EXTERNAL_LIB_VERSION)
-    set(TARGET_DATA     ${EXTERNAL_LIB_NAME})
-  endif (EXTERNAL_LIB_VERSION)
-
-  set(CMAKE_ROOT_DATA ${EXTERNAL_BIN_ROOT}/${TARGET_DATA})
+  set(VERSION_DATA    ${LIB_VERSION})
+  set(TARGET_DATA     ${LIB_NAME}-${VERSION_DATA})
+  set(CMAKE_ROOT_DATA ${BIN_ROOT}/${TARGET_DATA})
   set(ROOT_DATA       ${CMAKE_ROOT_DATA}/src/${TARGET_DATA})
 
   # Finally, EXPORT THE ABOVE VARIABLES. We take the data variables we just
@@ -68,14 +122,13 @@ function(EXTERNAL)
   #       like ${BOOST_VERSION}, which might evaluate to something like
   #       "1.53.0". So in this function, if you wanted to generate (e.g.) the
   #       target variable, it is not sufficient to write
-  #       "${EXTERNAL_LIB_NAME}-${VERSION_VAR}", because this would result in
+  #       "${LIB_NAME}-${VERSION_VAR}", because this would result in
   #       something like "boost-BOOST_VERSION" when what we really wanted was
   #       "boost-1.53.0". Hence, these two steps are different.
-  if(EXTERNAL_LIB_VERSION)
-    set(${VERSION_VAR}    # e.g., 1.53.0
-      ${VERSION_DATA}
-      PARENT_SCOPE)
-  endif (EXTERNAL_LIB_VERSION)
+
+  set(${VERSION_VAR}    # e.g., 1.53.0
+    ${VERSION_DATA}
+    PARENT_SCOPE)
 
   set(${TARGET_VAR}     # e.g., boost-1.53.0
     ${TARGET_DATA}
